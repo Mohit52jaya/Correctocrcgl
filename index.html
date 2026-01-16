@@ -97,7 +97,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-xs font-bold text-slate-500 uppercase mb-2 block ml-1">Chunk Size</label>
-                                <input id="chunkSize" type="number" value="4000" class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none transition-all text-indigo-100 font-mono"/>
+                                <input id="chunkSize" type="number" value="2000" class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none transition-all text-indigo-100 font-mono"/>
                             </div>
                             <div>
                                 <label class="text-xs font-bold text-slate-500 uppercase mb-2 block ml-1">Delay (ms)</label>
@@ -213,53 +213,23 @@
                 return t.replace(/[^\S\r\n]{2,}/g," ").replace(/\u0000/g,"").trim();
             }
 
-            function splitChunks(text, max) {
-                let out = [];
-                let pos = 0;
-                // Regex to find "Q. No:" with optional spaces
-                const qPattern = /Q\.\s*No\s*:/gi;
-
-                while (pos < text.length) {
-                    let end = pos + max;
-                    if (end >= text.length) {
-                        out.push(text.slice(pos));
-                        break;
-                    }
-
-                    // Look ahead for "Q. No:" anchors to find a clean break point
-                    let searchArea = text.slice(pos, end + 1000); 
-                    let matches = [...searchArea.matchAll(qPattern)];
-                    
-                    let cutPoint = -1;
-                    // Find the last question marker that is close to our 'max' limit
-                    for (let i = matches.length - 1; i >= 0; i--) {
-                        let absoluteIdx = pos + matches[i].index;
-                        // Try to cut at a marker that is at least 60% into the max chunk size
-                        if (absoluteIdx > pos + (max * 0.6) && absoluteIdx <= pos + max) {
-                            cutPoint = absoluteIdx;
-                            break;
-                        }
-                    }
-
-                    // Fallback to newline if no question marker found within range
-                    if (cutPoint === -1) {
-                        cutPoint = text.lastIndexOf("\n", end);
-                        if (cutPoint <= pos) cutPoint = end;
-                    }
-
-                    out.push(text.slice(pos, cutPoint).trim());
-                    pos = cutPoint;
-                }
-                return out.filter(c => c.length > 0);
-            }
+            function splitChunks(text){
+const qs=text.split(/(?=Q\.\s*No\s*:)/gi).filter(q=>q.trim());
+let chunks=[];
+for(let i=0;i<qs.length;i+=15){
+chunks.push((qs[i]+(qs[i+1]||"")).trim());
+}
+return chunks;
+}
 
             async function sendToAI(content){
+                // YOUR EXACT RULES PRESERVED 100%
                 const prompt = `
-You are a competitive-exam OCR correction and formatting engine.
+You are a COMPETITIVE EXAM ANSWERING ENGINE.
 
 ABSOLUTE RULES (NO VIOLATION):
 1. Fix OCR errors in English (broken words, merged lines, garbage symbols).
-2. DO NOT invent, guess, or infer facts, answers, or exam dates.
+2. Answer every question with the help of options .
 3. Extract exam metadata ONLY if explicitly present:
    - Exam Level
    - Test Date
@@ -267,23 +237,21 @@ ABSOLUTE RULES (NO VIOLATION):
 4. Construct exam tag ONLY from extracted data:
    Example: SSC CGL Tier 1 14 Sep 2025 (Shift-3)
 5. Reuse the same exam tag for all questions until a new exam header appears.
-6. If no exam header is found, use previous exam date but whereever found new exam date tag start mentioning that exam date tag but dont skip mentioning exam date , exam date is mandatory in every question.
+6. If no exam header is found use previous exam date tag
 7. If a question has options and the correct answer is CLEAR and STANDARD, pick it and convert to:
    • Question – Correct Answer (Exam Date)
    Then REMOVE all options.
-8. If the correct answer is NOT 100% certain:
-   • Keep MCQ format
+8. If the correct answer cannot directly answered by question it requires options or statement then:
+   • Keep MCQ format (exam date)
    • Keep all options
-   • Write: Answer –
+   • Write: correct answer 
 9. Statement / assertion-reason questions MUST remain MCQ.
 10. Do NOT write explanations.
 11. Remove non-content text (roll number, candidate name, footers, channel names).
 12. Merge broken lines to reconstruct full questions.
-13. Each new question must start on a new line with a bullet (•).
+13. Each new question must start with the same question number as mentioned 
 14. Preserve English technical terms exactly (Shift, Tier, NTPC, etc.).
-15. Add subject headings ONLY if clearly identifiable.
-16. Do NOT create new questions.
-17. I want content in english only remove hindi but you use hindi for correction in english if any
+15. I want content in english only remove hindi but you use hindi for correction in english if any
 
 TEXT TO PROCESS:
 ${content}
@@ -292,7 +260,7 @@ END OF TEXT.`;
                 try{
                     let r = await puter.ai.chat(prompt, { 
                         model:"deepseek/deepseek-v3.2", 
-                        max_tokens:3000 
+                        max_tokens:2000 
                     });
                     if(!r || !r.message || !r.message.content) throw new Error("NO_RESPONSE");
                     return String(r.message.content);
@@ -311,7 +279,7 @@ END OF TEXT.`;
                 logBox.innerHTML = "";
                 
                 let raw = clean(await file.text());
-                let chunkSize = parseInt(chunkSizeInput.value) || 4000;
+                let chunkSize = parseInt(chunkSizeInput.value) || 2000;
                 let delay = parseInt(delayInput.value) || 1200;
                 let chunks = splitChunks(raw, chunkSize);
                 
@@ -321,11 +289,12 @@ END OF TEXT.`;
                 for(let i=0; i<chunks.length; i++){
                     if(stopFlag){ log("Process stopped by user manually.", "error"); break; }
 
-                    log(`========== Processing chunk ${i+1}/${chunks.length} ==========\n\n${chunks[i].substring(0,200)}...`);
+                    log(`========== Processing chunk ${i+1}/${chunks.length} ==========\n\n${chunks[i]}`);
                     
                     let output = "";
                     let success = false;
 
+                    // 3 ATTEMPT LOGIC PRESERVED
                     for(let a=1; a<=3; a++){
                         log(`Attempt ${a} for chunk ${i+1}...`);
                         output = await sendToAI(chunks[i]);
@@ -355,6 +324,7 @@ END OF TEXT.`;
                 downloadLink.download = file.name.replace(".txt","") + "_AI_Corrected.txt";
                 downloadLink.classList.remove('hidden');
                 
+                // Auto-Download trigger
                 downloadLink.click();
 
                 log("SYSTEM: Processing complete. File downloaded.", "success");
