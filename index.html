@@ -3,249 +3,146 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>OCR Cleaner Pro | Mohit Edition</title>
-
+<title>OCR Cleaner Pro | Delhi Police Updated</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://js.puter.com/v2/"></script>
-
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-body {
-    background: #020617;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    color: #f1f5f9;
-}
-.glass {
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-.log-entry {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 1rem 0;
-    line-height: 1.8;
-}
-.custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: #0f172a;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 10px;
-}
+body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; }
+.glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+.log-entry { border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 1rem 0; line-height: 1.8; }
 </style>
 </head>
-
 <body class="p-4 md:p-10">
-
 <div class="max-w-6xl mx-auto">
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <header class="flex justify-between items-center mb-8">
         <div>
             <h1 class="text-3xl font-extrabold tracking-tight">OCR <span class="text-indigo-400">Cleaner</span> Pro</h1>
-            <p class="text-slate-400 text-sm">Strict Hindi-Only Output | Engineered by Mohit</p>
+            <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Delhi Police & SSC Specialist</p>
         </div>
-        <div class="flex gap-3 w-full md:w-auto">
-            <button id="startBtn" class="flex-1 md:flex-none px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold transition-all shadow-lg shadow-indigo-500/20">START</button>
-            <button id="stopBtn" disabled class="flex-1 md:flex-none px-8 py-3 rounded-xl bg-slate-700 font-bold opacity-40 transition-all cursor-not-allowed">STOP</button>
+        <div class="flex gap-3">
+            <button id="startBtn" class="px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold shadow-lg shadow-indigo-500/20 transition-all">START</button>
+            <button id="stopBtn" disabled class="px-8 py-3 rounded-xl bg-slate-700 font-bold opacity-40 transition-all">STOP</button>
         </div>
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-4 space-y-5">
             <div class="glass p-6 rounded-2xl">
-                <label class="text-xs text-indigo-300 font-bold uppercase tracking-wider">Source Text File</label>
-                <input id="fileInput" type="file" accept=".txt" class="mt-3 w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"/>
+                <label class="text-xs text-indigo-300 font-bold uppercase">Upload Answer Key (.txt)</label>
+                <input id="fileInput" type="file" accept=".txt" class="mt-3 w-full bg-slate-900/50 p-2 rounded-xl border border-slate-700 focus:border-indigo-500 outline-none"/>
             </div>
-
-            <div class="glass p-6 rounded-2xl grid grid-cols-2 gap-4">
-                <div>
-                    <label class="text-xs uppercase text-slate-400 font-semibold">Qs / Chunk</label>
-                    <input id="qsPerChunk" type="number" value="10" class="w-full mt-2 bg-slate-900 p-2.5 rounded-lg border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none"/>
-                </div>
-                <div>
-                    <label class="text-xs uppercase text-slate-400 font-semibold">Delay (ms)</label>
-                    <input id="delay" type="number" value="1200" class="w-full mt-2 bg-slate-900 p-2.5 rounded-lg border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none"/>
-                </div>
+            <div class="glass p-5 rounded-2xl text-center border-b-4 border-indigo-500">
+                <div id="statTag" class="text-xs font-mono text-indigo-300 break-words h-12 flex items-center justify-center italic">Waiting for file...</div>
+                <div class="text-[10px] text-slate-500 uppercase mt-2">Detected Exam Tag</div>
             </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="glass p-5 rounded-2xl text-center border-b-4 border-indigo-500">
-                    <div id="statTotal" class="text-3xl font-bold">-</div>
-                    <div class="text-xs text-slate-400 mt-1 uppercase tracking-tighter">Total Chunks</div>
-                </div>
-                <div class="glass p-5 rounded-2xl text-center border-b-4 border-emerald-500">
-                    <div id="statDone" class="text-3xl font-bold text-emerald-400">0</div>
-                    <div class="text-xs text-slate-400 mt-1 uppercase tracking-tighter">Finished</div>
-                </div>
+            <div class="glass p-5 rounded-2xl text-center">
+                <div id="statDone" class="text-3xl font-bold text-emerald-400">0</div>
+                <div class="text-xs text-slate-400 mt-1 uppercase">Chunks Done</div>
             </div>
         </div>
 
         <div class="lg:col-span-8 space-y-4">
-            <div class="glass p-4 rounded-2xl flex items-center gap-4">
-                <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
-                    <div id="progressBar" class="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full w-0 transition-all duration-700 ease-out"></div>
+            <div class="glass p-4 rounded-2xl">
+                <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                    <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all duration-500"></div>
                 </div>
-                <span id="progressText" class="text-sm font-bold min-w-[40px]">0%</span>
             </div>
-
             <div class="glass rounded-2xl overflow-hidden shadow-2xl">
-                <div class="px-5 py-3 bg-slate-900/80 border-b border-white/5 flex justify-between items-center">
-                    <span class="text-xs uppercase tracking-widest font-bold text-slate-400">Live AI Transformation</span>
-                    <div id="loader" class="hidden flex items-center gap-2">
-                        <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
-                        <span class="text-[10px] text-indigo-400 font-bold uppercase">AI Thinking...</span>
-                    </div>
-                </div>
-                <div id="log" class="custom-scrollbar h-[55vh] overflow-y-auto p-6 text-[15px] whitespace-pre-wrap selection:bg-indigo-500/30"></div>
+                <div id="log" class="h-[60vh] overflow-y-auto p-6 text-[15px] whitespace-pre-wrap leading-relaxed"></div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-lucide.createIcons();
-
 (function(){
     const fileInput = document.getElementById("fileInput");
     const startBtn = document.getElementById("startBtn");
     const stopBtn = document.getElementById("stopBtn");
     const logBox = document.getElementById("log");
-    const statTotal = document.getElementById("statTotal");
+    const statTag = document.getElementById("statTag");
     const statDone = document.getElementById("statDone");
     const progressBar = document.getElementById("progressBar");
-    const progressText = document.getElementById("progressText");
-    const loader = document.getElementById("loader");
 
     let stopFlag = false;
-    let finalCleanedData = [];
     let GLOBAL_TAG = "";
 
-    function updateLog(content, isAI = false) {
+    function log(content, isAI = false) {
         const div = document.createElement("div");
-        div.className = isAI ? "log-entry text-emerald-300 font-medium" : "text-indigo-400 text-xs py-2 italic opacity-70";
+        div.className = isAI ? "log-entry text-emerald-300" : "text-indigo-400 text-xs py-1";
         div.textContent = content;
         logBox.appendChild(div);
         logBox.scrollTop = logBox.scrollHeight;
     }
 
-    async function callAI(textChunk) {
-        loader.classList.remove("hidden");
-        // STRICT PROMPT: Focuses on New Lines, Hindi, and Tagging
-        const prompt = `
-        You are a specialized Exam Paper Reformatter for Indian Competitive Exams.
-        
-        STRICT OUTPUT RULES:
-        1. LANGUAGE: Use ONLY Hindi. Remove all English text completely.
-        2. STRUCTURE: Start every new question on a NEW LINE.
-        3. FORMAT: Q.No: [Number] [Question Text] — **[Correct Answer]** (${GLOBAL_TAG})
-        4. STATEMENTS: If a question has multiple statements (1, 2, 3), list them clearly.
-        5. ERRORS: Fix Hindi spelling mistakes caused by OCR.
-        6. NO CHATTER: Do not provide any introduction or conclusion. Just the cleaned questions.
-        7. SPACING: Ensure one blank line between two questions.
+    // --- यहाँ सुधार किया गया है (Detecting Delhi Police & Date correctly) ---
+    function detectTag(text) {
+        const lines = text.split('\n').slice(0, 50); // शुरुआती लाइनों में ढूंढें
+        let level = "";
+        let date = "";
+        let shift = "";
 
-        INPUT DATA:
-        ${textChunk}
-        `;
-
-        try {
-            const response = await puter.ai.chat(prompt, {
-                model: "gpt-4o-mini", // Very reliable for formatting
-                max_tokens: 3000
-            });
-            loader.classList.add("hidden");
-            return response.message.content.trim();
-        } catch (e) {
-            loader.classList.add("hidden");
-            return "AI_ERROR: " + e.message;
+        for(let line of lines) {
+            if(line.includes("Exam Level")) level = line.split(":")[1]?.trim();
+            if(line.includes("Test Date")) date = line.split(":")[1]?.trim();
+            if(line.includes("Shift")) shift = line.split(":")[1]?.trim();
         }
+
+        if(level && date) {
+            // "Constable (Executive) Male and Female in Delhi Police Examination, 2025" को छोटा करें
+            const cleanLevel = level.replace("Male and Female in ", "").replace("Examination,", "").trim();
+            return `${cleanLevel} ${date} ${shift}`;
+        }
+        
+        // Fallback अगर ऊपर वाला फेल हो जाए
+        const fallback = text.match(/(Constable.*?Delhi Police|SSC).*?\d{4}.*?Shift-?\d+/i);
+        return fallback ? fallback[0] : "SSC Exam 2025";
     }
 
     startBtn.onclick = async () => {
         const file = fileInput.files[0];
-        if(!file) return alert("Please upload a .txt file!");
+        if(!file) return alert("Select File!");
 
-        // Reset UI
+        const text = await file.text();
+        GLOBAL_TAG = detectTag(text);
+        statTag.textContent = GLOBAL_TAG;
+        
         startBtn.disabled = true;
         stopBtn.disabled = false;
-        startBtn.classList.add("opacity-50");
-        stopBtn.classList.remove("opacity-40");
         logBox.innerHTML = "";
-        finalCleanedData = [];
         stopFlag = false;
 
-        const content = await file.text();
-
-        // Exam Tag Detection (e.g., SSC CPO 12 Dec 2025 Shift-1)
-        const tagMatch = content.match(/(SSC|CGL|CPO|CHSL|RRB|UP).*?\d{1,2}\s*[A-Za-z]+\s*\d{4}.*?Shift-?\s*\d+/i);
-        GLOBAL_TAG = tagMatch ? tagMatch[0].trim().replace(/\s+/g, ' ') : "SSC SICPO 2025";
-        updateLog(`🏷️ Detected Tag: ${GLOBAL_TAG}`);
-
-        // Split by Question Number
-        const questions = content.split(/(?=Q\.No\s*[:.-]?\s*\d+)/gi).filter(q => q.trim().length > 15);
-        const batchSize = parseInt(document.getElementById("qsPerChunk").value) || 10;
-        
+        const questions = text.split(/(?=Q\.No\s*[:.-]?\s*\d+)/gi).filter(q => q.length > 20);
         let chunks = [];
-        for(let i=0; i<questions.length; i+=batchSize){
-            chunks.push(questions.slice(i, i+batchSize).join("\n\n"));
+        for(let i=0; i<questions.length; i+=10) chunks.push(questions.slice(i, i+10).join("\n\n"));
+
+        for(let i=0; i<chunks.length; i++) {
+            if(stopFlag) break;
+            log(`🔄 Processing Batch ${i+1}...`);
+            
+            const prompt = `You are a professional Hindi Exam Formatter. 
+            RULES:
+            1. Output in HINDI only.
+            2. Start every question on a NEW LINE.
+            3. Append "(${GLOBAL_TAG})" at the end of every question.
+            4. Format: Q.No XX: [Question] — **Correct Answer**
+            TEXT: ${chunks[i]}`;
+
+            try {
+                const res = await puter.ai.chat(prompt);
+                const cleaned = res.message.content.trim();
+                log(cleaned, true);
+                statDone.textContent = i+1;
+                progressBar.style.width = ((i+1)/chunks.length)*100 + "%";
+            } catch (e) { log("Error in AI call"); }
         }
-
-        statTotal.textContent = chunks.length;
-
-        for(let i=0; i<chunks.length; i++){
-            if(stopFlag) {
-                updateLog("🛑 Stop signal received. Finishing...");
-                break;
-            }
-
-            updateLog(`⏳ Processing Chunk ${i+1} of ${chunks.length}...`);
-            const cleanedText = await callAI(chunks[i]);
-
-            if(cleanedText.startsWith("AI_ERROR")) {
-                updateLog("❌ Error in AI response. Skipping this chunk...");
-            } else {
-                updateLog(cleanedText, true);
-                finalCleanedData.push(cleanedText);
-            }
-
-            // Stats & Progress
-            statDone.textContent = i+1;
-            const percentage = Math.round(((i+1)/chunks.length)*100);
-            progressBar.style.width = percentage + "%";
-            progressText.textContent = percentage + "%";
-
-            // User-defined delay
-            await new Promise(r => setTimeout(r, document.getElementById("delay").value));
-        }
-
-        // Final Download
-        if(finalCleanedData.length > 0){
-            const blob = new Blob([finalCleanedData.join("\n\n")], {type: "text/plain"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `Cleaned_${GLOBAL_TAG.replace(/ /g, '_')}.txt`;
-            a.click();
-            updateLog("🎉 All Done! File downloaded successfully.");
-        }
-
         startBtn.disabled = false;
-        stopBtn.disabled = true;
-        startBtn.classList.remove("opacity-50");
-        stopBtn.classList.add("opacity-40");
     };
 
-    stopBtn.onclick = () => {
-        stopFlag = true;
-        stopBtn.disabled = true;
-    };
-
+    stopBtn.onclick = () => { stopFlag = true; };
 })();
 </script>
-
 </body>
 </html>
