@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>OCR Batch Cleaner | Delhi Police & SSC</title>
+<title>OCR Fast Batch | Delhi Police</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://js.puter.com/v2/"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; }
 .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-.log-entry { border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 1rem 0; line-height: 1.8; }
+.log-entry { border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 0.8rem 0; line-height: 1.6; }
 .active-file { border-left: 4px solid #6366f1; background: rgba(99, 102, 241, 0.1); }
 </style>
 </head>
@@ -18,8 +18,8 @@ body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color:
 <div class="max-w-6xl mx-auto">
     <header class="flex justify-between items-center mb-8">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight">OCR <span class="text-indigo-400">Batch</span> Cleaner</h1>
-            <p class="text-slate-400 text-sm font-bold uppercase">Sequential Processing | No Skip Logic</p>
+            <h1 class="text-3xl font-extrabold tracking-tight">DP <span class="text-indigo-400">Fast</span> Cleaner</h1>
+            <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Multi-Threaded Batch Processing</p>
         </div>
         <div class="flex gap-3">
             <button id="startBtn" class="px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold shadow-lg shadow-indigo-500/20 transition-all">START BATCH</button>
@@ -30,43 +30,30 @@ body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color:
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-4 space-y-5">
             <div class="glass p-6 rounded-2xl">
-                <label class="text-xs text-indigo-300 font-bold uppercase tracking-widest">Select Files (Upload Multiple)</label>
-                <input id="fileInput" type="file" accept=".txt" multiple class="mt-3 w-full bg-slate-900/50 p-2 rounded-xl border border-slate-700 outline-none cursor-pointer file:bg-indigo-600 file:border-0 file:rounded file:text-white file:px-2"/>
+                <label class="text-xs text-indigo-300 font-bold uppercase">Select Text Files</label>
+                <input id="fileInput" type="file" accept=".txt" multiple class="mt-3 w-full bg-slate-900/50 p-2 rounded-xl border border-slate-700 outline-none file:bg-indigo-600 file:border-0 file:rounded file:text-white file:px-2"/>
             </div>
-
+            <div class="glass p-5 rounded-2xl text-center border-b-4 border-indigo-500">
+                <div id="statTag" class="text-xs font-mono text-indigo-300 break-words h-12 flex items-center justify-center italic">Ready...</div>
+                <div class="text-[10px] text-slate-500 uppercase mt-2">Active Exam Tag</div>
+            </div>
             <div class="glass p-4 rounded-2xl">
-                <h3 class="text-xs font-bold text-slate-400 uppercase mb-3">Processing Queue</h3>
-                <div id="fileQueue" class="space-y-2 max-h-48 overflow-y-auto text-[11px]">
-                    <div class="text-slate-500 italic">No files selected...</div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="glass p-5 rounded-2xl text-center border-b-4 border-indigo-500">
-                    <div id="statCurrentFile" class="text-xl font-bold text-indigo-300">0/0</div>
-                    <div class="text-[10px] text-slate-500 uppercase mt-1">Files Done</div>
-                </div>
-                <div class="glass p-5 rounded-2xl text-center border-b-4 border-emerald-500">
-                    <div id="statTag" class="text-[10px] font-mono text-emerald-400 truncate">Waiting...</div>
-                    <div class="text-[10px] text-slate-500 uppercase mt-1">Active Tag</div>
-                </div>
+                <h3 class="text-xs font-bold text-slate-400 uppercase mb-3">Queue Status</h3>
+                <div id="fileQueue" class="space-y-2 max-h-48 overflow-y-auto text-[11px]"></div>
             </div>
         </div>
 
         <div class="lg:col-span-8 space-y-4">
             <div class="glass p-4 rounded-2xl flex items-center gap-4">
                 <div class="flex-1">
-                    <div class="flex justify-between mb-1">
-                        <span id="currentFileName" class="text-[10px] uppercase text-slate-400">Current Progress</span>
-                        <span id="progressPercent" class="text-[10px] font-bold">0%</span>
-                    </div>
+                    <div class="flex justify-between mb-1"><span class="text-[10px] uppercase text-slate-400 font-bold">Progress</span><span id="progressPercent" class="text-[10px] font-bold">0%</span></div>
                     <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                        <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all"></div>
+                        <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
                     </div>
                 </div>
             </div>
             <div class="glass rounded-2xl overflow-hidden shadow-2xl">
-                <div id="log" class="h-[60vh] overflow-y-auto p-6 text-[14px] whitespace-pre-wrap leading-relaxed"></div>
+                <div id="log" class="h-[60vh] overflow-y-auto p-6 text-[14px] whitespace-pre-wrap selection:bg-indigo-500/30"></div>
             </div>
         </div>
     </div>
@@ -80,10 +67,8 @@ body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color:
     const stopBtn = document.getElementById("stopBtn");
     const logBox = document.getElementById("log");
     const statTag = document.getElementById("statTag");
-    const statCurrentFile = document.getElementById("statCurrentFile");
     const progressBar = document.getElementById("progressBar");
     const progressPercent = document.getElementById("progressPercent");
-    const currentFileNameDisp = document.getElementById("currentFileName");
 
     let stopFlag = false;
 
@@ -91,80 +76,96 @@ body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color:
         fileQueue.innerHTML = "";
         Array.from(fileInput.files).forEach((file, idx) => {
             const item = document.createElement("div");
-            item.className = "p-2 rounded bg-slate-800/50 flex justify-between items-center border border-white/5";
+            item.className = "p-2 rounded bg-slate-800/50 flex justify-between border border-white/5";
             item.id = `file-item-${idx}`;
-            item.innerHTML = `<span>${idx + 1}. ${file.name}</span><span class="status-icon">⏳</span>`;
+            item.innerHTML = `<span>${file.name}</span><span class="status-icon">⏳</span>`;
             fileQueue.appendChild(item);
         });
-        statCurrentFile.textContent = `0/${fileInput.files.length}`;
     };
 
     function log(content, isAI = false) {
         const div = document.createElement("div");
-        div.className = isAI ? "log-entry text-emerald-300" : "text-indigo-400 text-[11px] py-1 border-l-2 border-indigo-500 pl-2 my-2 bg-indigo-500/5";
+        div.className = isAI ? "log-entry text-emerald-300" : "text-indigo-400 text-[11px] py-1 border-l-2 border-indigo-500 pl-2 my-1";
         div.textContent = content;
         logBox.appendChild(div);
         logBox.scrollTop = logBox.scrollHeight;
     }
 
-    // --- Strict Tag Detection ---
+    // --- Improved Exam Tag Detection ---
     function detectTag(text) {
-        const lines = text.split('\n').slice(0, 50);
-        let level = "", date = "", shift = "";
-        for(let line of lines) {
-            if(line.includes("Exam Level")) level = line.split(":")[1]?.trim();
-            if(line.includes("Test Date")) date = line.split(":")[1]?.trim();
-            if(line.includes("Shift")) shift = line.split(":")[1]?.trim();
+        const lines = text.split('\n').slice(0, 100); 
+        let examName = "Delhi Police Constable";
+        let date = "";
+        let shift = "";
+
+        for (let line of lines) {
+            if (line.includes("Test Date")) date = line.split(":")[1]?.trim();
+            if (line.includes("Shift")) {
+                const shiftMatch = line.match(/\(Shift-?\s*(\d+)\)/i);
+                shift = shiftMatch ? `Shift-${shiftMatch[1]}` : line.split(":")[1]?.trim();
+            }
         }
-        if(level && date) {
-            const cleanLevel = level.replace("Male and Female in ", "").replace("Examination,", "").trim();
-            return `${cleanLevel} ${date} ${shift}`;
-        }
-        const fallback = text.match(/(Constable.*?Delhi Police|SSC).*?\d{4}.*?Shift-?\d+/i);
-        return fallback ? fallback[0] : "SSC Exam 2025";
+        
+        if (date && shift) return `${examName} ${date} ${shift}`;
+        return "Delhi Police Constable Exam 2025";
     }
 
     async function processFile(file, idx) {
         document.getElementById(`file-item-${idx}`).classList.add('active-file');
-        currentFileNameDisp.textContent = `Processing: ${file.name}`;
-        
         const text = await file.text();
         const tag = detectTag(text);
         statTag.textContent = tag;
-        log(`📂 File ${idx+1}: ${file.name}`);
+        
+        log(`Processing: ${file.name}`);
 
         const questions = text.split(/(?=Q\.No\s*[:.-]?\s*\d+)/gi).filter(q => q.length > 20);
         let chunks = [];
         for(let i=0; i<questions.length; i+=10) chunks.push(questions.slice(i, i+10).join("\n\n"));
 
-        let outputData = [];
-        for(let i=0; i<chunks.length; i++) {
-            if(stopFlag) return null;
+        // Speed Boost: Process 3 chunks at the same time
+        const concurrency = 3;
+        let outputData = new Array(chunks.length);
+        
+        for (let i = 0; i < chunks.length; i += concurrency) {
+            if (stopFlag) return null;
             
-            const prompt = `You are a professional Hindi Exam Formatter. 
-            RULES:
+            const batch = chunks.slice(i, i + concurrency).map(async (chunk, subIdx) => {
+                const prompt = `You are a Hindi Exam Formatter. 
+                RULES:
+                RULES:
             1. LANGUAGE: Use ONLY Hindi. Remove English translations.
             2. STRUCTURE: Start every question on a NEW LINE with its original Q.No.
             3. TAG: Append "(${tag})" at the end of every question.
-           4. FORMAT: Q.No XX: Question — **Correct Answer** (exam date) . This format should follow in every question except STATEMENT QUESTIONS.
+           4. FORMAT: Q.No XX: Question — **Correct Answer** (exam date) . This format should follow in every question except STATEMENT QUESTIONS. There should be no options 
+          Example : - Q.No 76: निम्नलिखित में से कौन ज्ञानपीठ पुरस्कार विजेता महिला लेखिका है? — महादेवी वर्मा। (Delhi Police Constable 28 Nov 2025 Shift-3)
             4. STATEMENT QUESTIONS: For 'Kathan' (Statement) or Assertion questions, you MUST list all statements (Statement 1, Statement 2, etc.) clearly on separate sub-lines. Do not skip any statement.
+Example - Q.No 93: भारत के पेट्रोलियम भंडार किन क्षेत्रों में हैं?
+I. असम की अवसादी घाटियाँ।
+II. अरब सागर का अपतटीय क्षेत्र।
+— I और II दोनों। (Delhi Police Constable 28 Nov 2025 Shift-3)
             5. Exam date is mandatory in every question and exam date is same for continuous 50 questions and exam changes after 50 questions check exam date tag            
 
-            TEXT: ${chunks[i]}`;
-
-            try {
-                const res = await puter.ai.chat(prompt);
-                const cleaned = res.message.content.trim();
-                outputData.push(cleaned);
-                log(cleaned, true);
                 
-                const p = Math.round(((i+1)/chunks.length)*100);
-                progressBar.style.width = p + "%";
-                progressPercent.textContent = p + "%";
-            } catch (e) { log("⚠️ Error in AI call. Retrying..."); i--; }
+                TEXT: ${chunk}`;
+
+                try {
+                    const res = await puter.ai.chat(prompt);
+                    outputData[i + subIdx] = res.message.content.trim();
+                    log(outputData[i + subIdx], true);
+                } catch (e) {
+                    log("⚠️ AI Error, retrying...");
+                    i -= concurrency; // Retry this batch
+                }
+            });
+
+            await Promise.all(batch);
+            
+            const p = Math.round(((i + concurrency) / chunks.length) * 100);
+            progressBar.style.width = Math.min(p, 100) + "%";
+            progressPercent.textContent = Math.min(p, 100) + "%";
         }
 
-        const blob = new Blob([outputData.join("\n\n")], {type: "text/plain"});
+        const blob = new Blob([outputData.filter(d => d).join("\n\n")], {type: "text/plain"});
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         a.download = `Cleaned_${file.name}`;
@@ -177,7 +178,7 @@ body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color:
 
     startBtn.onclick = async () => {
         const files = fileInput.files;
-        if(!files.length) return alert("Select files first!");
+        if(!files.length) return;
         
         startBtn.disabled = true;
         stopBtn.disabled = false;
@@ -186,13 +187,11 @@ body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color:
 
         for(let i=0; i<files.length; i++) {
             if(stopFlag) break;
-            statCurrentFile.textContent = `${i+1}/${files.length}`;
-            const ok = await processFile(files[i], i);
-            if(!ok) break;
-            await new Promise(r => setTimeout(r, 2000));
+            await processFile(files[i], i);
+            await new Promise(r => setTimeout(r, 1000));
         }
         
-        log("🏁 BATCH PROCESSING COMPLETE.");
+        log("🏁 BATCH COMPLETE.");
         startBtn.disabled = false;
         stopBtn.disabled = true;
     };
@@ -202,4 +201,3 @@ body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color:
 </script>
 </body>
 </html>
-
