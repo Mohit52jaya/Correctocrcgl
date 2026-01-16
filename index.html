@@ -47,7 +47,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-xs font-bold text-slate-500 uppercase mb-2 block ml-1">Qs per Chunk</label>
-                                <input id="qsPerChunk" type="number" value="10" class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 text-indigo-100 font-mono"/>
+                                <input id="qsPerChunk" type="number" value="15" class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 text-indigo-100 font-mono"/>
                             </div>
                             <div>
                                 <label class="text-xs font-bold text-slate-500 uppercase mb-2 block ml-1">Delay (ms)</label>
@@ -95,16 +95,16 @@
             }
 
             function splitIntoQuestions(text, qsPerChunk) {
-                // Splits at Q.No: without losing the marker
+                // Split correctly at Q.No: markers
                 const parts = text.split(/(?=Q\.No\s*:)/gi);
-                const header = parts[0]; // Metadata like Exam Date
+                const header = parts[0]; 
                 const questions = parts.slice(1);
                 
                 let chunks = [];
                 for (let i = 0; i < questions.length; i += qsPerChunk) {
-                    // Include the header in the first chunk so AI gets the date
                     let content = questions.slice(i, i + qsPerChunk).join("\n\n");
-                    if (i === 0) content = header + "\n" + content;
+                    // Always prepend header to the first chunk or if it contains keywords
+                    if (i === 0 || header.includes("Exam Level")) content = header + "\n" + content;
                     chunks.push(content);
                 }
                 return chunks;
@@ -113,15 +113,17 @@
             async function sendToAI(content){
                 const prompt = `You are a COMPETITIVE EXAM ANSWERING ENGINE.
 ABSOLUTE RULES:
-1. Fix OCR errors in English.
-2. Answer every question with the help of options.
-3. Extract Exam Level, Test Date, Shift to build a tag like: SSC CGL Tier 1 14 Sep 2025 (Shift-3).
-4. REUSE this tag for all questions in this chunk.
-5. Format: • Q.No [Number]: Question Text – Correct Answer (Exam Tag).
-6. If the answer is standard, pick it and REMOVE options. 
-7. If it's a statement/assertion type, KEEP MCQ format and options, but write: "Correct Answer: ".
-8. Remove non-content text (roll number, watermarks like @apna_mocks).
-9. Output ONLY English. Remove Hindi translations completely.
+1. Fix OCR errors in English. Answer every question using options.
+2. DETECTION: Look for the exam metadata block (Exam Level, Test Date, etc.). 
+3. TRANSFORMATION: Replace the entire metadata block with ONLY one line: "[Exam Level] [Test Date] ([Shift])".
+   Example output line: "SSC CGL Tier 1 14 Sep 2025 (Shift-3)"
+   DO NOT include "Roll No", "Candidate Name", "Test Time", or "Centre Name".
+4. If the answer is standard, pick it and REMOVE options. 
+5. If it's a statement/assertion type, KEEP MCQ format and options, but write: "Correct Answer: ".
+6. Remove all Hindi text. Keep ONLY English.
+7. Remove watermark phrases like "@apna_mocks" or "Undertaking by the candidate".
+8. If the answer is certain, remove options. If not certain or statement-based, keep options.
+
 TEXT: ${content}`;
                 try {
                     let r = await puter.ai.chat(prompt, { model:"deepseek/deepseek-v3.2", max_tokens:3000 });
@@ -134,7 +136,7 @@ TEXT: ${content}`;
                 startBtn.disabled = true; stopBtn.disabled = false; stopFlag = false; correctedChunks = []; logBox.innerHTML = "";
                 
                 const text = await file.text();
-                const qCount = parseInt(document.getElementById("qsPerChunk").value) || 10;
+                const qCount = parseInt(document.getElementById("qsPerChunk").value) || 15;
                 const chunks = splitIntoQuestions(text, qCount);
                 statTotal.textContent = chunks.length;
 
@@ -142,7 +144,11 @@ TEXT: ${content}`;
                     if(stopFlag) break;
                     log(`Processing Chunk ${i+1}/${chunks.length}...`);
                     let output = await sendToAI(chunks[i]);
-                    if(output === "AI_ERROR") output = "[Error Processing This Chunk]";
+                    if(output === "AI_ERROR") {
+                        log("Retrying chunk...", "error");
+                        await new Promise(r=>setTimeout(r, 2000));
+                        output = await sendToAI(chunks[i]);
+                    }
                     log(output, "ai");
                     correctedChunks.push(output);
                     statDone.textContent = i + 1;
@@ -153,8 +159,9 @@ TEXT: ${content}`;
 
                 const blob = new Blob([correctedChunks.join("\n\n")], {type:"text/plain"});
                 downloadLink.href = URL.createObjectURL(blob);
-                downloadLink.download = "Corrected_Exam_Data.txt";
+                downloadLink.download = "Cleaned_Exam_Paper.txt";
                 downloadLink.classList.remove('hidden');
+                downloadLink.click();
                 startBtn.disabled = false; stopBtn.disabled = true;
             };
             stopBtn.onclick = () => stopFlag = true;
