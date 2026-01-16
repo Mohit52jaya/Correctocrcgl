@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>OCR Cleaner Pro | Mohit</title>
+<title>OCR Cleaner Pro | Gemini Partner</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
@@ -35,35 +35,33 @@ body{
 <header class="flex justify-between items-center mb-8">
 <div>
 <h1 class="text-3xl font-extrabold">OCR <span class="text-indigo-400">Cleaner</span> Pro</h1>
-<p class="text-slate-400 text-sm">Engineered by Mohit</p>
+<p class="text-slate-400 text-sm">Corrected AI Implementation</p>
 </div>
 <div class="flex gap-3">
-<button id="startBtn" class="px-6 py-3 rounded-xl bg-indigo-600 font-bold">START</button>
-<button id="stopBtn" disabled class="px-6 py-3 rounded-xl bg-slate-700 font-bold opacity-40">STOP</button>
+<button id="startBtn" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold transition">START</button>
+<button id="stopBtn" disabled class="px-6 py-3 rounded-xl bg-slate-700 font-bold opacity-40 transition">STOP</button>
 </div>
 </header>
 
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-<!-- LEFT -->
 <div class="lg:col-span-4 space-y-5">
-
 <div class="glass p-6 rounded-2xl">
 <label class="text-xs text-slate-400 uppercase">Input Text File</label>
 <input id="fileInput" type="file" accept=".txt"
-class="mt-2 w-full bg-slate-900 p-2 rounded"/>
+class="mt-2 w-full bg-slate-900 p-2 rounded border border-slate-700"/>
 </div>
 
 <div class="glass p-6 rounded-2xl grid grid-cols-2 gap-4">
 <div>
 <label class="text-xs uppercase text-slate-400">Qs / Chunk</label>
-<input id="qsPerChunk" type="number" value="15"
-class="w-full mt-1 bg-slate-900 p-2 rounded"/>
+<input id="qsPerChunk" type="number" value="10"
+class="w-full mt-1 bg-slate-900 p-2 rounded border border-slate-700"/>
 </div>
 <div>
 <label class="text-xs uppercase text-slate-400">Delay (ms)</label>
-<input id="delay" type="number" value="1200"
-class="w-full mt-1 bg-slate-900 p-2 rounded"/>
+<input id="delay" type="number" value="1000"
+class="w-full mt-1 bg-slate-900 p-2 rounded border border-slate-700"/>
 </div>
 </div>
 
@@ -77,28 +75,24 @@ class="w-full mt-1 bg-slate-900 p-2 rounded"/>
 <div class="text-xs text-slate-400">Processed</div>
 </div>
 </div>
-
 </div>
 
-<!-- RIGHT -->
 <div class="lg:col-span-8 space-y-4">
-
 <div class="glass p-4 rounded-xl flex items-center gap-4">
 <div class="w-full bg-slate-800 rounded-full h-2">
-<div id="progressBar" class="bg-indigo-500 h-2 rounded-full w-0"></div>
+<div id="progressBar" class="bg-indigo-500 h-2 rounded-full w-0 transition-all duration-500"></div>
 </div>
 <span id="progressText" class="text-sm">0%</span>
 </div>
 
 <div class="glass rounded-2xl overflow-hidden">
-<div class="px-4 py-2 bg-slate-900 text-xs uppercase text-slate-400">
-Live Output
+<div class="px-4 py-2 bg-slate-900 text-xs uppercase text-slate-400 flex justify-between">
+<span>Live Output</span>
+<span id="statusIndicator" class="text-indigo-400 animate-pulse hidden">AI is thinking...</span>
 </div>
-<div id="log" class="log h-[55vh] overflow-y-auto p-4 text-sm"></div>
+<div id="log" class="log h-[55vh] overflow-y-auto p-4 text-sm leading-relaxed"></div>
 </div>
-
 </div>
-
 </div>
 </div>
 
@@ -106,141 +100,139 @@ Live Output
 lucide.createIcons();
 
 (function(){
+    const fileInput = document.getElementById("fileInput");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const logBox = document.getElementById("log");
+    const statTotal = document.getElementById("statTotal");
+    const statDone = document.getElementById("statDone");
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
+    const statusIndicator = document.getElementById("statusIndicator");
 
-const fileInput = document.getElementById("fileInput");
-const startBtn = document.getElementById("startBtn");
-const stopBtn = document.getElementById("stopBtn");
-const logBox = document.getElementById("log");
-const statTotal = document.getElementById("statTotal");
-const statDone = document.getElementById("statDone");
-const progressBar = document.getElementById("progressBar");
-const progressText = document.getElementById("progressText");
+    let stopFlag = false;
+    let correctedChunks = [];
+    let GLOBAL_EXAM_TAG = "";
 
-let stopFlag = false;
-let correctedChunks = [];
-let GLOBAL_EXAM_TAG = "";
+    function log(msg, type="info"){
+        const d = document.createElement("div");
+        d.className = "mb-6 p-3 rounded " + (type==="ai" ? "bg-slate-900/50 text-emerald-300 border-l-4 border-emerald-500" : "text-indigo-300 italic");
+        d.textContent = msg;
+        logBox.appendChild(d);
+        logBox.scrollTop = logBox.scrollHeight;
+    }
 
-/* ---------- UTIL ---------- */
+    function splitIntoQuestions(text, qs){
+        // Improved split to capture Q.No even with spaces
+        const parts = text.split(/(?=Q\.No\s*[:.-]?\s*\d+)/gi);
+        const header = parts[0];
+        const qsns = parts.slice(1);
+        let chunks = [];
+        for(let i=0; i<qsns.length; i+=qs){
+            let c = qsns.slice(i, i+qs).join("\n\n");
+            if(i===0 && header.length > 5) c = header + "\n" + c;
+            chunks.push(c);
+        }
+        return chunks;
+    }
 
-function log(msg, type="info"){
-const d=document.createElement("div");
-d.className="mb-4 whitespace-pre-wrap "+(type==="ai"?"text-cyan-400":"text-indigo-300");
-d.textContent=msg;
-logBox.appendChild(d);
-logBox.scrollTop=logBox.scrollHeight;
-}
+    async function sendToAI(content){
+        statusIndicator.classList.remove('hidden');
+        const prompt = `
+        You are an expert OCR Correction Engine.
+        TASK: Clean the following OCR text and format it into clear Hindi questions.
 
-function splitIntoQuestions(text, qs){
-const parts=text.split(/(?=Q\.No\s*:)/gi);
-const header=parts[0];
-const qsns=parts.slice(1);
-let chunks=[];
-for(let i=0;i<qsns.length;i+=qs){
-let c=qsns.slice(i,i+qs).join("\n\n");
-if(i===0) c=header+"\n"+c;
-chunks.push(c);
-}
-return chunks;
-}
+        STRICT RULES:
+        1. Keep ONLY the Hindi text. Remove all English translations/text.
+        2. FIX OCR errors (misspelled Hindi words).
+        3. FORMAT: Each question must start with its original "Q.No: XX".
+        4. ANSWER: Mention the correct answer clearly.
+        5. MANDATORY TAG: Append exactly "${GLOBAL_EXAM_TAG}" at the end of every single question.
+        6. MULTI-STATEMENT: For Assertion/Reason or Statement questions (1, 2, 3), do NOT skip any statements. List them all.
+        7. OUTPUT: No intro, no outro, no explanations. Just the cleaned questions.
 
-/* ---------- AI ---------- */
+        TEXT TO PROCESS:
+        ${content}
+        `;
 
-async function sendToAI(content){
-const prompt=`
-You are a COMPETITIVE EXAM ANSWERING ENGINE.
+        try {
+            const r = await puter.ai.chat(prompt, {
+                model: "gpt-4o-mini", // Recommended for better instruction following
+                max_tokens: 3500
+            });
+            statusIndicator.classList.add('hidden');
+            return r.message.content;
+        } catch (e) {
+            statusIndicator.classList.add('hidden');
+            return "AI_ERROR: " + e.message;
+        }
+    }
 
-MANDATORY RULES:
-1. Fix OCR errors in hindi only.
-2. NEVER remove statements from statement/Assertion questions.
-3. Answer every question using options.
-4. Use this exam tag for ALL questions:
-${GLOBAL_EXAM_TAG || "NO_EXAM_TAG"}
-5. Append the exam tag to EVERY QUESTION.
-6. Do NOT invent dates.
-7. Remove english text from output.
-8. Do NOT write explanations.
-9. Each question must start with original Q.No.
-10. Preserve MCQ format for statement / assertion questions.
+    startBtn.onclick = async () => {
+        const file = fileInput.files[0];
+        if(!file) { alert("Please select a file first!"); return; }
 
-TEXT:
-${content}
-`;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        startBtn.classList.add('opacity-40');
+        stopBtn.classList.remove('opacity-40');
+        stopFlag = false;
+        logBox.innerHTML = "";
+        correctedChunks = [];
 
-try{
-const r=await puter.ai.chat(prompt,{
-model:"deepseek/deepseek-v3.2",
-max_tokens:3000
-});
-return r.message.content;
-}catch{
-return "AI_ERROR";
-}
-}
+        const text = await file.text();
 
-/* ---------- START ---------- */
+        // Robust Exam Tag Detection
+        const tagMatch = text.match(/(SSC|UP|RRB|IBPS|UPSC|Exam).*?\d{4}.*?Shift-?\d+/i) || 
+                         text.match(/SSC\s*SICPO.*?2025/i);
+        
+        GLOBAL_EXAM_TAG = tagMatch ? tagMatch[0].trim() : "SSC SICPO 2025";
+        log(`Detected Exam Tag: ${GLOBAL_EXAM_TAG}`);
 
-startBtn.onclick=async()=>{
-const file=fileInput.files[0];
-if(!file) return;
+        const qs = parseInt(document.getElementById("qsPerChunk").value) || 10;
+        const chunks = splitIntoQuestions(text, qs);
+        statTotal.textContent = chunks.length;
 
-startBtn.disabled=true;
-stopBtn.disabled=false;
-stopFlag=false;
-logBox.innerHTML="";
-correctedChunks=[];
+        for(let i=0; i<chunks.length; i++){
+            if(stopFlag) { log("STOPPED BY USER"); break; }
 
-const text=await file.text();
+            log(`🔄 Processing Chunks ${i+1}/${chunks.length}...`);
+            let out = await sendToAI(chunks[i]);
 
-/* DETECT EXAM TAG ONCE */
-const match=text.match(
-/(SSC\s*CGL\s*Tier\s*\d+.*?\(Shift-?\d+\))|((SSC|UP|RRB|IBPS|NABARD).*?\d{1,2}\s[A-Za-z]{3,}\s\d{4}.*?\(Shift-?\d+\))/i
-);
-if(match) GLOBAL_EXAM_TAG=match[0].replace(/\s+/g," ").trim();
+            if(out.includes("AI_ERROR")) {
+                log("Error occurred, retrying in 3 seconds...");
+                await new Promise(r => setTimeout(r, 3000));
+                i--; continue;
+            }
 
-const qs=parseInt(document.getElementById("qsPerChunk").value)||15;
-const chunks=splitIntoQuestions(text,qs);
-statTotal.textContent=chunks.length;
+            log(out, "ai");
+            correctedChunks.push(out);
 
-for(let i=0;i<chunks.length;i++){
-if(stopFlag) break;
+            statDone.textContent = i+1;
+            const p = Math.round(((i+1)/chunks.length)*100);
+            progressBar.style.width = p + "%";
+            progressText.textContent = p + "%";
 
-log(`Processing chunk ${i+1}/${chunks.length}`);
-let out=await sendToAI(chunks[i]);
+            await new Promise(r => setTimeout(r, document.getElementById("delay").value));
+        }
 
-/* FINAL SAFETY NET */
-if(GLOBAL_EXAM_TAG && !out.includes(GLOBAL_EXAM_TAG)){
-out=out.replace(
-/(Q\.No\s*\d+.*?\?)/g,
-`$1 (${GLOBAL_EXAM_TAG})`
-);
-}
+        if(correctedChunks.length > 0){
+            const blob = new Blob([correctedChunks.join("\n\n")], {type: "text/plain"});
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = `Cleaned_${GLOBAL_EXAM_TAG.replace(/\s+/g, '_')}.txt`;
+            a.click();
+            log("✅ Task Completed! File Downloaded.");
+        }
 
-log(out,"ai");
-correctedChunks.push(out);
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        startBtn.classList.remove('opacity-40');
+        stopBtn.classList.add('opacity-40');
+    };
 
-statDone.textContent=i+1;
-const p=Math.round(((i+1)/chunks.length)*100);
-progressBar.style.width=p+"%";
-progressText.textContent=p+"%";
-
-await new Promise(r=>setTimeout(r,document.getElementById("delay").value));
-}
-
-/* DOWNLOAD */
-const blob=new Blob([correctedChunks.join("\n\n")],{type:"text/plain"});
-const a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="Cleaned_Exam_Paper.txt";
-a.click();
-
-startBtn.disabled=false;
-stopBtn.disabled=true;
-};
-
-stopBtn.onclick=()=>stopFlag=true;
-
+    stopBtn.onclick = () => { stopFlag = true; };
 })();
 </script>
-
 </body>
 </html>
