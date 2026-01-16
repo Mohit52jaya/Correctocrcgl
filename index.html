@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>OCR Cleaner Pro | New Line Edition</title>
+<title>OCR Cleaner Pro | Mohit Edition</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
@@ -12,86 +12,99 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-body{
-    background:#020617;
-    font-family:'Plus Jakarta Sans',sans-serif;
-    color:#f1f5f9;
+body {
+    background: #020617;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #f1f5f9;
 }
-.glass{
-    background:rgba(15,23,42,.65);
-    backdrop-filter:blur(12px);
-    border:1px solid rgba(255,255,255,.08);
+.glass {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
-/* आउटपुट बॉक्स में नए प्रश्न को स्पष्ट दिखाने के लिए */
-.log div {
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding-bottom: 1rem;
+.log-entry {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1rem 0;
+    line-height: 1.8;
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 10px;
 }
 </style>
 </head>
 
-<body class="p-6 md:p-10">
+<body class="p-4 md:p-10">
 
 <div class="max-w-6xl mx-auto">
-<header class="flex justify-between items-center mb-8">
-<div>
-<h1 class="text-3xl font-extrabold">OCR <span class="text-indigo-400">Cleaner</span> Pro</h1>
-<p class="text-slate-400 text-sm">Every Question on a New Line</p>
-</div>
-<div class="flex gap-3">
-<button id="startBtn" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold transition">START</button>
-<button id="stopBtn" disabled class="px-6 py-3 rounded-xl bg-slate-700 font-bold opacity-40 transition">STOP</button>
-</div>
-</header>
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">OCR <span class="text-indigo-400">Cleaner</span> Pro</h1>
+            <p class="text-slate-400 text-sm">Strict Hindi-Only Output | Engineered by Mohit</p>
+        </div>
+        <div class="flex gap-3 w-full md:w-auto">
+            <button id="startBtn" class="flex-1 md:flex-none px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold transition-all shadow-lg shadow-indigo-500/20">START</button>
+            <button id="stopBtn" disabled class="flex-1 md:flex-none px-8 py-3 rounded-xl bg-slate-700 font-bold opacity-40 transition-all cursor-not-allowed">STOP</button>
+        </div>
+    </header>
 
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-4 space-y-5">
+            <div class="glass p-6 rounded-2xl">
+                <label class="text-xs text-indigo-300 font-bold uppercase tracking-wider">Source Text File</label>
+                <input id="fileInput" type="file" accept=".txt" class="mt-3 w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"/>
+            </div>
 
-<div class="lg:col-span-4 space-y-5">
-<div class="glass p-6 rounded-2xl">
-<label class="text-xs text-slate-400 uppercase">Input Text File</label>
-<input id="fileInput" type="file" accept=".txt" class="mt-2 w-full bg-slate-900 p-2 rounded border border-slate-700"/>
-</div>
+            <div class="glass p-6 rounded-2xl grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs uppercase text-slate-400 font-semibold">Qs / Chunk</label>
+                    <input id="qsPerChunk" type="number" value="10" class="w-full mt-2 bg-slate-900 p-2.5 rounded-lg border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none"/>
+                </div>
+                <div>
+                    <label class="text-xs uppercase text-slate-400 font-semibold">Delay (ms)</label>
+                    <input id="delay" type="number" value="1200" class="w-full mt-2 bg-slate-900 p-2.5 rounded-lg border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none"/>
+                </div>
+            </div>
 
-<div class="glass p-6 rounded-2xl grid grid-cols-2 gap-4">
-<div>
-<label class="text-xs uppercase text-slate-400">Qs / Chunk</label>
-<input id="qsPerChunk" type="number" value="10" class="w-full mt-1 bg-slate-900 p-2 rounded border border-slate-700"/>
-</div>
-<div>
-<label class="text-xs uppercase text-slate-400">Delay (ms)</label>
-<input id="delay" type="number" value="1000" class="w-full mt-1 bg-slate-900 p-2 rounded border border-slate-700"/>
-</div>
-</div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass p-5 rounded-2xl text-center border-b-4 border-indigo-500">
+                    <div id="statTotal" class="text-3xl font-bold">-</div>
+                    <div class="text-xs text-slate-400 mt-1 uppercase tracking-tighter">Total Chunks</div>
+                </div>
+                <div class="glass p-5 rounded-2xl text-center border-b-4 border-emerald-500">
+                    <div id="statDone" class="text-3xl font-bold text-emerald-400">0</div>
+                    <div class="text-xs text-slate-400 mt-1 uppercase tracking-tighter">Finished</div>
+                </div>
+            </div>
+        </div>
 
-<div class="grid grid-cols-2 gap-4">
-<div class="glass p-4 rounded-xl text-center">
-<div id="statTotal" class="text-2xl font-bold">-</div>
-<div class="text-xs text-slate-400">Total Chunks</div>
-</div>
-<div class="glass p-4 rounded-xl text-center">
-<div id="statDone" class="text-2xl font-bold text-emerald-400">0</div>
-<div class="text-xs text-slate-400">Processed</div>
-</div>
-</div>
-</div>
+        <div class="lg:col-span-8 space-y-4">
+            <div class="glass p-4 rounded-2xl flex items-center gap-4">
+                <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+                    <div id="progressBar" class="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full w-0 transition-all duration-700 ease-out"></div>
+                </div>
+                <span id="progressText" class="text-sm font-bold min-w-[40px]">0%</span>
+            </div>
 
-<div class="lg:col-span-8 space-y-4">
-<div class="glass p-4 rounded-xl flex items-center gap-4">
-<div class="w-full bg-slate-800 rounded-full h-2">
-<div id="progressBar" class="bg-indigo-500 h-2 rounded-full w-0 transition-all duration-500"></div>
-</div>
-<span id="progressText" class="text-sm">0%</span>
-</div>
-
-<div class="glass rounded-2xl overflow-hidden">
-<div class="px-4 py-2 bg-slate-900 text-xs uppercase text-slate-400 flex justify-between">
-<span>Live Output</span>
-<span id="statusIndicator" class="text-indigo-400 animate-pulse hidden">AI is cleaning...</span>
-</div>
-<div id="log" class="log h-[55vh] overflow-y-auto p-4 text-sm leading-loose whitespace-pre-wrap"></div>
-</div>
-</div>
-</div>
+            <div class="glass rounded-2xl overflow-hidden shadow-2xl">
+                <div class="px-5 py-3 bg-slate-900/80 border-b border-white/5 flex justify-between items-center">
+                    <span class="text-xs uppercase tracking-widest font-bold text-slate-400">Live AI Transformation</span>
+                    <div id="loader" class="hidden flex items-center gap-2">
+                        <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                        <span class="text-[10px] text-indigo-400 font-bold uppercase">AI Thinking...</span>
+                    </div>
+                </div>
+                <div id="log" class="custom-scrollbar h-[55vh] overflow-y-auto p-6 text-[15px] whitespace-pre-wrap selection:bg-indigo-500/30"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -106,111 +119,131 @@ lucide.createIcons();
     const statDone = document.getElementById("statDone");
     const progressBar = document.getElementById("progressBar");
     const progressText = document.getElementById("progressText");
-    const statusIndicator = document.getElementById("statusIndicator");
+    const loader = document.getElementById("loader");
 
     let stopFlag = false;
-    let correctedChunks = [];
-    let GLOBAL_EXAM_TAG = "";
+    let finalCleanedData = [];
+    let GLOBAL_TAG = "";
 
-    function log(msg, type="info"){
-        const d = document.createElement("div");
-        d.className = "mb-4 " + (type==="ai" ? "text-emerald-300 font-medium" : "text-indigo-400 italic text-xs");
-        d.textContent = msg;
-        logBox.appendChild(d);
+    function updateLog(content, isAI = false) {
+        const div = document.createElement("div");
+        div.className = isAI ? "log-entry text-emerald-300 font-medium" : "text-indigo-400 text-xs py-2 italic opacity-70";
+        div.textContent = content;
+        logBox.appendChild(div);
         logBox.scrollTop = logBox.scrollHeight;
     }
 
-    async function sendToAI(content){
-        statusIndicator.classList.remove('hidden');
+    async function callAI(textChunk) {
+        loader.classList.remove("hidden");
+        // STRICT PROMPT: Focuses on New Lines, Hindi, and Tagging
         const prompt = `
-        You are a Hindi Exam Content Formatter.
+        You are a specialized Exam Paper Reformatter for Indian Competitive Exams.
         
-        TASK:
-        1. Clean OCR errors in Hindi.
-        2. Remove ALL English text.
-        3. STRUCTURE: Every single question MUST start on a brand new line.
-        4. Format: "Q.No: XX [Question Text] — **[Correct Answer]** (${GLOBAL_EXAM_TAG})"
-        5. DO NOT combine questions into a single paragraph. 
-        6. For statement-based questions (1, 2, 3), list each statement on a sub-line.
-        7. No conversational filler. No "Here is the cleaned text".
+        STRICT OUTPUT RULES:
+        1. LANGUAGE: Use ONLY Hindi. Remove all English text completely.
+        2. STRUCTURE: Start every new question on a NEW LINE.
+        3. FORMAT: Q.No: [Number] [Question Text] — **[Correct Answer]** (${GLOBAL_TAG})
+        4. STATEMENTS: If a question has multiple statements (1, 2, 3), list them clearly.
+        5. ERRORS: Fix Hindi spelling mistakes caused by OCR.
+        6. NO CHATTER: Do not provide any introduction or conclusion. Just the cleaned questions.
+        7. SPACING: Ensure one blank line between two questions.
 
-        TEXT:
-        ${content}
+        INPUT DATA:
+        ${textChunk}
         `;
 
         try {
-            const r = await puter.ai.chat(prompt, {
-                model: "gpt-4o-mini",
-                max_tokens: 3500
+            const response = await puter.ai.chat(prompt, {
+                model: "gpt-4o-mini", // Very reliable for formatting
+                max_tokens: 3000
             });
-            statusIndicator.classList.add('hidden');
-            return r.message.content.trim();
+            loader.classList.add("hidden");
+            return response.message.content.trim();
         } catch (e) {
-            statusIndicator.classList.add('hidden');
-            return "AI_ERROR";
+            loader.classList.add("hidden");
+            return "AI_ERROR: " + e.message;
         }
     }
 
     startBtn.onclick = async () => {
         const file = fileInput.files[0];
-        if(!file) return;
+        if(!file) return alert("Please upload a .txt file!");
 
+        // Reset UI
         startBtn.disabled = true;
         stopBtn.disabled = false;
-        stopFlag = false;
+        startBtn.classList.add("opacity-50");
+        stopBtn.classList.remove("opacity-40");
         logBox.innerHTML = "";
-        correctedChunks = [];
+        finalCleanedData = [];
+        stopFlag = false;
 
-        const rawText = await file.text();
-        
-        // Detect Exam Tag
-        const tagMatch = rawText.match(/SSC\s*SICPO.*?Shift-?\d+/i) || rawText.match(/SSC.*?2025/i);
-        GLOBAL_EXAM_TAG = tagMatch ? tagMatch[0].trim() : "SSC SICPO 2025";
+        const content = await file.text();
 
-        // Logic to split by Q.No
-        const qParts = rawText.split(/(?=Q\.No\s*[:.-]?\s*\d+)/gi).filter(q => q.trim().length > 10);
-        const qsPerChunk = parseInt(document.getElementById("qsPerChunk").value) || 10;
+        // Exam Tag Detection (e.g., SSC CPO 12 Dec 2025 Shift-1)
+        const tagMatch = content.match(/(SSC|CGL|CPO|CHSL|RRB|UP).*?\d{1,2}\s*[A-Za-z]+\s*\d{4}.*?Shift-?\s*\d+/i);
+        GLOBAL_TAG = tagMatch ? tagMatch[0].trim().replace(/\s+/g, ' ') : "SSC SICPO 2025";
+        updateLog(`🏷️ Detected Tag: ${GLOBAL_TAG}`);
+
+        // Split by Question Number
+        const questions = content.split(/(?=Q\.No\s*[:.-]?\s*\d+)/gi).filter(q => q.trim().length > 15);
+        const batchSize = parseInt(document.getElementById("qsPerChunk").value) || 10;
         
         let chunks = [];
-        for(let i=0; i<qParts.length; i+=qsPerChunk){
-            chunks.push(qParts.slice(i, i+qsPerChunk).join("\n\n"));
+        for(let i=0; i<questions.length; i+=batchSize){
+            chunks.push(questions.slice(i, i+batchSize).join("\n\n"));
         }
 
         statTotal.textContent = chunks.length;
 
         for(let i=0; i<chunks.length; i++){
-            if(stopFlag) break;
-
-            log(`Processing Chunk ${i+1}...`);
-            let cleaned = await sendToAI(chunks[i]);
-            
-            if(cleaned !== "AI_ERROR") {
-                log(cleaned, "ai");
-                correctedChunks.push(cleaned);
+            if(stopFlag) {
+                updateLog("🛑 Stop signal received. Finishing...");
+                break;
             }
 
-            statDone.textContent = i+1;
-            const p = Math.round(((i+1)/chunks.length)*100);
-            progressBar.style.width = p + "%";
-            progressText.textContent = p + "%";
+            updateLog(`⏳ Processing Chunk ${i+1} of ${chunks.length}...`);
+            const cleanedText = await callAI(chunks[i]);
 
+            if(cleanedText.startsWith("AI_ERROR")) {
+                updateLog("❌ Error in AI response. Skipping this chunk...");
+            } else {
+                updateLog(cleanedText, true);
+                finalCleanedData.push(cleanedText);
+            }
+
+            // Stats & Progress
+            statDone.textContent = i+1;
+            const percentage = Math.round(((i+1)/chunks.length)*100);
+            progressBar.style.width = percentage + "%";
+            progressText.textContent = percentage + "%";
+
+            // User-defined delay
             await new Promise(r => setTimeout(r, document.getElementById("delay").value));
         }
 
-        if(correctedChunks.length > 0){
-            const finalContent = correctedChunks.join("\n\n");
-            const blob = new Blob([finalContent], {type: "text/plain"});
+        // Final Download
+        if(finalCleanedData.length > 0){
+            const blob = new Blob([finalCleanedData.join("\n\n")], {type: "text/plain"});
+            const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = `Cleaned_Questions.txt`;
+            a.href = url;
+            a.download = `Cleaned_${GLOBAL_TAG.replace(/ /g, '_')}.txt`;
             a.click();
+            updateLog("🎉 All Done! File downloaded successfully.");
         }
 
         startBtn.disabled = false;
         stopBtn.disabled = true;
+        startBtn.classList.remove("opacity-50");
+        stopBtn.classList.add("opacity-40");
     };
 
-    stopBtn.onclick = () => { stopFlag = true; };
+    stopBtn.onclick = () => {
+        stopFlag = true;
+        stopBtn.disabled = true;
+    };
+
 })();
 </script>
 
