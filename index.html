@@ -113,16 +113,7 @@
             async function sendToAI(content){
                 const prompt = `You are a COMPETITIVE EXAM ANSWERING ENGINE.
 ABSOLUTE RULES:
-1. Fix OCR errors in English. Answer every question using options.
-2. DETECTION: Look for the exam metadata block (Exam Level, Test Date, etc.). 
-3. TRANSFORMATION: Replace the entire metadata block with ONLY one line: "[Exam Level] [Test Date] ([Shift])".
-   Example output line: "SSC CGL Tier 1 14 Sep 2025 (Shift-3)"
-   DO NOT include "Roll No", "Candidate Name", "Test Time", or "Centre Name".
-4. If the answer is standard, pick it and REMOVE options. 
-5. If it's a statement/assertion type, KEEP MCQ format and options, but write: "Correct Answer: ".
-6. Remove all Hindi text. Keep ONLY English.
-7. Remove watermark phrases like "@apna_mocks" or "Undertaking by the candidate".
-8. If the answer is certain, remove options. If not certain or statement-based, keep options.
+
 
 TEXT: ${content}`;
                 try {
