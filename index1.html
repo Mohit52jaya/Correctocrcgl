@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>OCR Pro AI | Mohit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        body {
+            background-color: #020617;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,0.2) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,0.2) 0, transparent 50%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .log-container {
+            font-family: 'JetBrains Mono', monospace;
+            scrollbar-width: thin;
+            scrollbar-color: #334155 transparent;
+        }
+
+        .log-container::-webkit-scrollbar { width: 6px; }
+        .log-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5);
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="p-4 md:p-10">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="flex flex-col md:flex-row items-center justify-between mb-10 gap-6">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i data-lucide="cpu" class="text-white w-7 h-7"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-extrabold tracking-tight text-white">
+                        OCR <span class="text-indigo-400">Cleaner</span> Pro
+                    </h1>
+                    <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Engineered by Mohit</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button id="startBtn" class="btn-primary flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white shadow-xl">
+                    <i data-lucide="zap" class="w-5 h-5"></i> START ENGINE
+                </button>
+                <button id="stopBtn" disabled class="bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white transition-all px-6 py-3 rounded-xl font-bold disabled:opacity-20 disabled:cursor-not-allowed">
+                    <i data-lucide="octagon" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-4 space-y-6">
+                <div class="glass p-6 rounded-3xl">
+                    <h3 class="text-white font-bold mb-6 flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-5 h-5 text-indigo-400"></i> Parameters
+                    </h3>
+                    
+                    <div class="space-y-5">
+                        <div class="relative">
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-2 block ml-1">Input Text File</label>
+                            <div class="relative group">
+                                <input id="fileInput" type="file" accept=".txt" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer bg-slate-900/50 rounded-xl p-2 border border-slate-800 group-hover:border-indigo-500/50 transition-all"/>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 uppercase mb-2 block ml-1">Chunk Size</label>
+                                <input id="chunkSize" type="number" value="2000" class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none transition-all text-indigo-100 font-mono"/>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 uppercase mb-2 block ml-1">Delay (ms)</label>
+                                <input id="delay" type="number" value="1200" class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none transition-all text-indigo-100 font-mono"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass p-5 rounded-3xl text-center relative overflow-hidden group">
+                        <div class="relative z-10">
+                            <div id="statTotal" class="text-3xl font-black text-white">-</div>
+                            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Total Chunks</div>
+                        </div>
+                        <div class="absolute -right-2 -bottom-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <i data-lucide="layers" class="w-16 h-16"></i>
+                        </div>
+                    </div>
+                    <div class="glass p-5 rounded-3xl text-center border-emerald-500/20 relative overflow-hidden group">
+                        <div class="relative z-10">
+                            <div id="statDone" class="text-3xl font-black text-emerald-400">0</div>
+                            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Processed</div>
+                        </div>
+                        <div class="absolute -right-2 -bottom-2 opacity-5 text-emerald-400 group-hover:opacity-10 transition-opacity">
+                            <i data-lucide="check-circle" class="w-16 h-16"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 space-y-4">
+                <div class="glass py-4 px-6 rounded-2xl flex items-center justify-between">
+                    <div class="flex items-center gap-4 flex-1">
+                        <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-white/5">
+                            <div id="progressBar" class="bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 h-full w-0 transition-all duration-700 shadow-[0_0_15px_rgba(99,102,241,0.4)]"></div>
+                        </div>
+                        <span id="progressText" class="text-sm font-bold text-indigo-300 min-w-[45px]">0%</span>
+                    </div>
+                </div>
+
+                <div class="glass rounded-3xl overflow-hidden flex flex-col shadow-2xl border-white/5">
+                    <div class="bg-slate-900/80 px-6 py-4 border-b border-white/5 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="flex gap-1.5 mr-2">
+                                <div class="w-3 h-3 rounded-full bg-rose-500/50"></div>
+                                <div class="w-3 h-3 rounded-full bg-amber-500/50"></div>
+                                <div class="w-3 h-3 rounded-full bg-emerald-500/50"></div>
+                            </div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-tighter">Live Processing Terminal</span>
+                        </div>
+                        <a id="downloadLink" class="hidden animate-bounce text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-1.5 rounded-full transition-all flex items-center gap-2 shadow-lg">
+                             <i data-lucide="download" class="w-3.5 h-3.5"></i> SAVE OUTPUT
+                        </a>
+                    </div>
+                    <div id="log" class="log-container h-[50vh] p-6 text-sm overflow-y-auto bg-[#020617]/80">
+                        <div class="text-slate-600 animate-pulse font-mono">_ Ready for input. Please upload a .txt file.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://js.puter.com/v2/"></script>
+    <script>
+        lucide.createIcons();
+
+        (function(){
+            const fileInput = document.getElementById("fileInput");
+            const chunkSizeInput = document.getElementById("chunkSize");
+            const delayInput = document.getElementById("delay");
+            const startBtn = document.getElementById("startBtn");
+            const stopBtn = document.getElementById("stopBtn");
+            const logBox = document.getElementById("log");
+            const downloadLink = document.getElementById("downloadLink");
+            const progressBar = document.getElementById("progressBar");
+            const progressText = document.getElementById("progressText");
+            const statTotal = document.getElementById("statTotal");
+            const statDone = document.getElementById("statDone");
+
+            let stopFlag = false;
+            let correctedChunks = [];
+
+            function log(t, type="info"){
+                const line = document.createElement('div');
+                line.className = "mb-4 pb-4 border-b border-white/5 last:border-0";
+                
+                let colorClass = "text-indigo-300";
+                let icon = "info";
+                if(type === 'error') { colorClass = "text-rose-400"; icon = "alert-circle"; }
+                if(type === 'success') { colorClass = "text-emerald-400"; icon = "check-circle"; }
+                if(type === 'ai') { colorClass = "text-cyan-400"; icon = "bot"; }
+
+                line.innerHTML = `
+                    <div class="flex gap-3">
+                        <div class="mt-1 opacity-50"><i data-lucide="${icon}" class="w-4 h-4 ${colorClass}"></i></div>
+                        <div class="flex-1 whitespace-pre-wrap ${colorClass}">${t}</div>
+                    </div>
+                `;
+                logBox.appendChild(line);
+                lucide.createIcons();
+                logBox.scrollTop = logBox.scrollHeight;
+            }
+
+            function updateProgress(current, total) {
+                const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+                progressBar.style.width = percent + "%";
+                progressText.textContent = percent + "%";
+                statDone.textContent = current;
+            }
+
+            function clean(t){
+                return t.replace(/[^\S\r\n]{2,}/g," ").replace(/\u0000/g,"").trim();
+            }
+
+            function splitChunks(text, max){
+                let out = [];
+                let pos = 0;
+                while(pos < text.length){
+                    let end = pos + max;
+                    if(end >= text.length){ out.push(text.slice(pos)); break; }
+                    let cut = text.lastIndexOf("\n", end);
+                    if(cut <= pos) cut = end;
+                    out.push(text.slice(pos, cut));
+                    pos = cut;
+                }
+                return out;
+            }
+
+            async function sendToAI(content){
+                // YOUR EXACT RULES PRESERVED 100%
+                const prompt = `
+You are a competitive-exam OCR correction and formatting engine.
+
+ABSOLUTE RULES (NO VIOLATION):
+1. Fix OCR errors in English (broken words, merged lines, garbage symbols).
+2. DO NOT invent, guess, or infer facts, answers, or exam dates.
+3. Extract exam metadata ONLY if explicitly present:
+   - Exam Level
+   - Test Date
+   - Shift
+4. Construct exam tag ONLY from extracted data:
+   Example: SSC CGL Tier 1 14 Sep 2025 (Shift-3)
+5. Reuse the same exam tag for all questions until a new exam header appears.
+6. If no exam header is found, DO NOT add any exam date.
+7. If a question has options and the correct answer is CLEAR and STANDARD, pick it and convert to:
+   • Question – Correct Answer (Exam Date)
+   Then REMOVE all options.
+8. If the correct answer is NOT 100% certain:
+   • Keep MCQ format
+   • Keep all options
+   • Write: Answer –
+9. Statement / assertion-reason questions MUST remain MCQ.
+10. Do NOT write explanations.
+11. Remove non-content text (roll number, candidate name, footers, channel names).
+12. Merge broken lines to reconstruct full questions.
+13. Each new question must start on a new line with a bullet (•).
+14. Preserve English technical terms exactly (Shift, Tier, NTPC, etc.).
+15. Add subject headings ONLY if clearly identifiable.
+16. Do NOT create new questions.
+17. I want content in english only remove hindi but you use hindi for correction in english if any
+
+TEXT TO PROCESS:
+${content}
+END OF TEXT.`;
+
+                try{
+                    let r = await puter.ai.chat(prompt, { 
+                        model:"deepseek/deepseek-v3.2", 
+                        max_tokens:2000 
+                    });
+                    if(!r || !r.message || !r.message.content) throw new Error("NO_RESPONSE");
+                    return String(r.message.content);
+                }catch(e){ return "AI_ERROR"; }
+            }
+
+            startBtn.onclick = async ()=>{
+                const file = fileInput.files[0];
+                if(!file){ alert("Please select a text file first."); return; }
+
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                downloadLink.classList.add('hidden');
+                stopFlag = false;
+                correctedChunks = [];
+                logBox.innerHTML = "";
+                
+                let raw = clean(await file.text());
+                let chunkSize = parseInt(chunkSizeInput.value) || 2000;
+                let delay = parseInt(delayInput.value) || 1200;
+                let chunks = splitChunks(raw, chunkSize);
+                
+                statTotal.textContent = chunks.length;
+                log(`Starting engine for ${chunks.length} chunks...`, "success");
+
+                for(let i=0; i<chunks.length; i++){
+                    if(stopFlag){ log("Process stopped by user manually.", "error"); break; }
+
+                    log(`========== Processing chunk ${i+1}/${chunks.length} ==========\n\n${chunks[i]}`);
+                    
+                    let output = "";
+                    let success = false;
+
+                    // 3 ATTEMPT LOGIC PRESERVED
+                    for(let a=1; a<=3; a++){
+                        log(`Attempt ${a} for chunk ${i+1}...`);
+                        output = await sendToAI(chunks[i]);
+                        if(output !== "AI_ERROR" && output.trim() !== ""){
+                            success = true;
+                            break;
+                        }
+                        log("AI Error detected, retrying in 1s...", "error");
+                        await new Promise(r=>setTimeout(r,1000));
+                    }
+
+                    if(!success) output = `[FAILED chunk ${i+1} after 3 attempts]`;
+                    
+                    log(`----- CORRECTED OUTPUT -----\n${output}`, "ai");
+                    correctedChunks.push(output);
+                    updateProgress(i + 1, chunks.length);
+                    
+                    await new Promise(r=>setTimeout(r, delay));
+                }
+
+                log("Finalizing document structure...", "success");
+                let finalText = correctedChunks.join("\n\n");
+                const blob = new Blob([finalText], {type:"text/plain"});
+                const url = URL.createObjectURL(blob);
+                
+                downloadLink.href = url;
+                downloadLink.download = file.name.replace(".txt","") + "_AI_Corrected.txt";
+                downloadLink.classList.remove('hidden');
+                
+                // Auto-Download trigger
+                downloadLink.click();
+
+                log("SYSTEM: Processing complete. File downloaded.", "success");
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            };
+
+            stopBtn.onclick = () => {
+                stopFlag = true;
+                stopBtn.disabled = true;
+                log("STOP signal received. Finishing current task...", "error");
+            };
+        })();
+    </script>
+</body>
+</html>
