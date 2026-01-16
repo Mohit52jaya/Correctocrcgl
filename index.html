@@ -213,14 +213,19 @@
                 return t.replace(/[^\S\r\n]{2,}/g," ").replace(/\u0000/g,"").trim();
             }
 
-            function splitChunks(text){
-const qs=text.split(/(?=Q\.\s*No\s*:)/gi).filter(q=>q.trim());
-let chunks=[];
-for(let i=0;i<qs.length;i+=15){
-chunks.push((qs[i]+(qs[i+1]||"")).trim());
-}
-return chunks;
-}
+            function splitChunks(text) {
+    // Split by Question Numbering
+    const qs = text.split(/(?=Q\.\s*No\s*:)/gi).filter(q => q.trim());
+    let chunks = [];
+    
+    // Group 15 questions together into one string
+    for (let i = 0; i < qs.length; i += 15) {
+        let group = qs.slice(i, i + 15).join("\n\n");
+        chunks.push(group.trim());
+    }
+    return chunks;
+            }
+            
 
             async function sendToAI(content){
                 // YOUR EXACT RULES PRESERVED 100%
