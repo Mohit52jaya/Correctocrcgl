@@ -1,203 +1,254 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>By Mohit | Delhi Police</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://js.puter.com/v2/"></script>
+<meta charset="utf-8">
+<title>SSC GK Batch Classifier (Ollama)</title>
+
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; }
-.glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-.log-entry { border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 0.8rem 0; line-height: 1.6; }
-.active-file { border-left: 4px solid #6366f1; background: rgba(99, 102, 241, 0.1); }
+body {
+    font-family: Arial, sans-serif;
+    background: #020617;
+    color: #e5e7eb;
+    padding: 20px;
+}
+
+h2 { color: #38bdf8; }
+
+input[type=file] {
+    margin-top: 10px;
+}
+
+button {
+    padding: 10px 18px;
+    font-size: 15px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.stat {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+#progressWrap {
+    margin-top: 15px;
+}
+
+#progressBarBg {
+    width: 100%;
+    background: #1e293b;
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+#progressBar {
+    width: 0%;
+    height: 100%;
+    background: #38bdf8;
+}
+
+#log {
+    margin-top: 15px;
+    background: #020617;
+    border: 1px solid #334155;
+    padding: 10px;
+    height: 220px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-size: 13px;
+}
+
+.category-box {
+    margin-top: 15px;
+    border: 1px solid #334155;
+    padding: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+    background: #020617;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #334155;
+    margin: 8px 0;
+}
 </style>
 </head>
-<body class="p-4 md:p-10">
-<div class="max-w-6xl mx-auto">
-    <header class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-extrabold tracking-tight">DP <span class="text-indigo-400">Fast</span> Cleaner</h1>
-            <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Multi-Threaded Batch Processing</p>
-        </div>
-        <div class="flex gap-3">
-            <button id="startBtn" class="px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold shadow-lg shadow-indigo-500/20 transition-all">START BATCH</button>
-            <button id="stopBtn" disabled class="px-8 py-3 rounded-xl bg-slate-700 font-bold opacity-40 transition-all">STOP</button>
-        </div>
-    </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-4 space-y-5">
-            <div class="glass p-6 rounded-2xl">
-                <label class="text-xs text-indigo-300 font-bold uppercase">Select Text Files</label>
-                <input id="fileInput" type="file" accept=".txt" multiple class="mt-3 w-full bg-slate-900/50 p-2 rounded-xl border border-slate-700 outline-none file:bg-indigo-600 file:border-0 file:rounded file:text-white file:px-2"/>
-            </div>
-            <div class="glass p-5 rounded-2xl text-center border-b-4 border-indigo-500">
-                <div id="statTag" class="text-xs font-mono text-indigo-300 break-words h-12 flex items-center justify-center italic">Ready...</div>
-                <div class="text-[10px] text-slate-500 uppercase mt-2">Active Exam Tag</div>
-            </div>
-            <div class="glass p-4 rounded-2xl">
-                <h3 class="text-xs font-bold text-slate-400 uppercase mb-3">Queue Status</h3>
-                <div id="fileQueue" class="space-y-2 max-h-48 overflow-y-auto text-[11px]"></div>
-            </div>
-        </div>
+<body>
 
-        <div class="lg:col-span-8 space-y-4">
-            <div class="glass p-4 rounded-2xl flex items-center gap-4">
-                <div class="flex-1">
-                    <div class="flex justify-between mb-1"><span class="text-[10px] uppercase text-slate-400 font-bold">Progress</span><span id="progressPercent" class="text-[10px] font-bold">0%</span></div>
-                    <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                        <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="glass rounded-2xl overflow-hidden shadow-2xl">
-                <div id="log" class="h-[60vh] overflow-y-auto p-6 text-[14px] whitespace-pre-wrap selection:bg-indigo-500/30"></div>
-            </div>
-        </div>
+<h2>SSC GK Batch Classifier (Local Ollama)</h2>
+
+<input type="file" id="fileInput" accept=".txt"><br>
+<button onclick="start()">Start Processing</button>
+
+<div class="stat" id="status">Waiting…</div>
+<div class="stat" id="counter"></div>
+
+<div id="progressWrap">
+    <div>Progress: <span id="progressText">0%</span></div>
+    <div id="progressBarBg">
+        <div id="progressBar"></div>
     </div>
 </div>
 
+<div id="log"></div>
+
+<h3>Category-wise Live Output</h3>
+<div id="categories"></div>
+
 <script>
-(function(){
-    const fileInput = document.getElementById("fileInput");
-    const fileQueue = document.getElementById("fileQueue");
-    const startBtn = document.getElementById("startBtn");
-    const stopBtn = document.getElementById("stopBtn");
-    const logBox = document.getElementById("log");
-    const statTag = document.getElementById("statTag");
-    const progressBar = document.getElementById("progressBar");
-    const progressPercent = document.getElementById("progressPercent");
+// 🔴 CHANGE IP IF REQUIRED
+const OLLAMA_URL = "http://192.168.29.235:11434/api/generate";
 
-    let stopFlag = false;
+// Delay between requests (safe for Ollama)
+const DELAY = 700;
 
-    fileInput.onchange = () => {
-        fileQueue.innerHTML = "";
-        Array.from(fileInput.files).forEach((file, idx) => {
-            const item = document.createElement("div");
-            item.className = "p-2 rounded bg-slate-800/50 flex justify-between border border-white/5";
-            item.id = `file-item-${idx}`;
-            item.innerHTML = `<span>${file.name}</span><span class="status-icon">⏳</span>`;
-            fileQueue.appendChild(item);
-        });
-    };
+const categories = [
+    "History",
+    "Geography",
+    "Polity",
+    "Economy",
+    "Science",
+    "Current Affairs",
+    "Miscellaneous"
+];
 
-    function log(content, isAI = false) {
+let results = {};
+let totalQuestions = 0;
+
+categories.forEach(c => results[c] = []);
+
+// -------- QUESTION SPLITTER --------
+// Splits by exam-date bracket ending
+function splitQuestions(text) {
+    const blocks = text
+        .split(/\)\s*\n/)
+        .map(b => b.trim())
+        .filter(b => b.length > 30);
+
+    return blocks.map(b => b + ")");
+}
+
+// -------- RENDER CATEGORY BOXES --------
+function renderCategoryBoxes() {
+    const container = document.getElementById("categories");
+    container.innerHTML = "";
+
+    categories.forEach(cat => {
         const div = document.createElement("div");
-        div.className = isAI ? "log-entry text-emerald-300" : "text-indigo-400 text-[11px] py-1 border-l-2 border-indigo-500 pl-2 my-1";
-        div.textContent = content;
-        logBox.appendChild(div);
-        logBox.scrollTop = logBox.scrollHeight;
-    }
+        div.className = "category-box";
+        div.innerHTML = "<b>" + cat + "</b><hr>" +
+            results[cat].join("<hr>");
+        container.appendChild(div);
+    });
+}
 
-    // --- Improved Exam Tag Detection ---
-    function detectTag(text) {
-        const lines = text.split('\n').slice(0, 100); 
-        let examName = "Delhi Police Constable";
-        let date = "";
-        let shift = "";
+// -------- OLLAMA CLASSIFIER --------
+async function classify(question) {
 
-        for (let line of lines) {
-            if (line.includes("Test Date")) date = line.split(":")[1]?.trim();
-            if (line.includes("Shift")) {
-                const shiftMatch = line.match(/\(Shift-?\s*(\d+)\)/i);
-                shift = shiftMatch ? `Shift-${shiftMatch[1]}` : line.split(":")[1]?.trim();
-            }
-        }
-        
-        if (date && shift) return `${examName} ${date} ${shift}`;
-        return "Delhi Police Constable Exam 2025";
-    }
+    const prompt =
+"You are an SSC exam content editor.\n\n" +
+"Classify the following question into ONE category ONLY:\n" +
+categories.join("\n") + "\n\n" +
+"Rules:\n" +
+"- Output only the category name\n" +
+"- If unclear, choose Miscellaneous\n\n" +
+"Question:\n" + question;
 
-    async function processFile(file, idx) {
-        document.getElementById(`file-item-${idx}`).classList.add('active-file');
-        const text = await file.text();
-        const tag = detectTag(text);
-        statTag.textContent = tag;
-        
-        log(`Processing: ${file.name}`);
-
-        const questions = text.split(/(?=Q\.No\s*[:.-]?\s*\d+)/gi).filter(q => q.length > 20);
-        let chunks = [];
-        for(let i=0; i<questions.length; i+=10) chunks.push(questions.slice(i, i+10).join("\n\n"));
-
-        // Speed Boost: Process 3 chunks at the same time
-        const concurrency = 3;
-        let outputData = new Array(chunks.length);
-        
-        for (let i = 0; i < chunks.length; i += concurrency) {
-            if (stopFlag) return null;
-            
-            const batch = chunks.slice(i, i + concurrency).map(async (chunk, subIdx) => {
-                const prompt = `You are a Hindi Exam Formatter. 
-                RULES:
-                RULES:
-            1. LANGUAGE: Use ONLY Hindi. Remove English translations.
-            2. STRUCTURE: Start every question on a NEW LINE with its original Q.No.
-            3. TAG: Append "(${tag})" at the end of every question.
-           4. FORMAT: Q.No XX: Question — **Correct Answer** (exam date) . This format should follow in every question except STATEMENT QUESTIONS. There should be no options 
-          Example : - Q.No 76: निम्नलिखित में से कौन ज्ञानपीठ पुरस्कार विजेता महिला लेखिका है? — महादेवी वर्मा। (Delhi Police Constable 28 Nov 2025 Shift-3)
-            4. STATEMENT QUESTIONS: For 'Kathan' (Statement) or Assertion questions, you MUST list all statements (Statement 1, Statement 2, etc.) clearly on separate sub-lines. Do not skip any statement.
-Example - Q.No 93: भारत के पेट्रोलियम भंडार किन क्षेत्रों में हैं?
-I. असम की अवसादी घाटियाँ।
-II. अरब सागर का अपतटीय क्षेत्र।
-— I और II दोनों। (Delhi Police Constable 28 Nov 2025 Shift-3)
-            5. Exam date is mandatory in every question and exam date is same for continuous 50 questions and exam changes after 50 questions check exam date tag            
-
-                
-                TEXT: ${chunk}`;
-
-                try {
-                    const res = await puter.ai.chat(prompt);
-                    outputData[i + subIdx] = res.message.content.trim();
-                    log(outputData[i + subIdx], true);
-                } catch (e) {
-                    log("⚠️ AI Error, retrying...");
-                    i -= concurrency; // Retry this batch
-                }
-            });
-
-            await Promise.all(batch);
-            
-            const p = Math.round(((i + concurrency) / chunks.length) * 100);
-            progressBar.style.width = Math.min(p, 100) + "%";
-            progressPercent.textContent = Math.min(p, 100) + "%";
-        }
-
-        const blob = new Blob([outputData.filter(d => d).join("\n\n")], {type: "text/plain"});
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `Cleaned_${file.name}`;
-        a.click();
-
-        document.getElementById(`file-item-${idx}`).querySelector('.status-icon').textContent = "✅";
-        document.getElementById(`file-item-${idx}`).classList.remove('active-file');
-        return true;
-    }
-
-    startBtn.onclick = async () => {
-        const files = fileInput.files;
-        if(!files.length) return;
-        
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
-        stopFlag = false;
-        logBox.innerHTML = "";
-
-        for(let i=0; i<files.length; i++) {
-            if(stopFlag) break;
-            await processFile(files[i], i);
-            await new Promise(r => setTimeout(r, 1000));
-        }
-        
-        log("🏁 BATCH COMPLETE.");
-        startBtn.disabled = false;
-        stopBtn.disabled = true;
+    const payload = {
+        model: "llama3:8b",
+        prompt: prompt,
+        stream: false
     };
 
-    stopBtn.onclick = () => { stopFlag = true; };
-})();
+    const res = await fetch(OLLAMA_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+
+    const json = await res.json();
+    return json.response.trim();
+}
+
+// -------- MAIN PROCESS --------
+async function start() {
+
+    const file = document.getElementById("fileInput").files[0];
+    if (!file) {
+        alert("Please select a .txt file");
+        return;
+    }
+
+    categories.forEach(c => results[c] = []);
+    document.getElementById("log").textContent = "";
+    document.getElementById("categories").innerHTML = "";
+    document.getElementById("progressBar").style.width = "0%";
+    document.getElementById("progressText").textContent = "0%";
+
+    const text = await file.text();
+    const questions = splitQuestions(text);
+
+    totalQuestions = questions.length;
+    document.getElementById("status").textContent = "Processing started…";
+
+    for (let i = 0; i < questions.length; i++) {
+
+        const q = questions[i];
+
+        document.getElementById("status").textContent =
+            "Processing " + (i + 1) + " / " + totalQuestions;
+
+        try {
+            let cat = await classify(q);
+            if (!results[cat]) cat = "Miscellaneous";
+            results[cat].push(q);
+
+            document.getElementById("log").textContent +=
+                (i + 1) + ". [" + cat + "]\n" + q + "\n\n";
+
+        } catch (e) {
+            results["Miscellaneous"].push(q);
+            document.getElementById("log").textContent +=
+                (i + 1) + ". [ERROR → Miscellaneous]\n" + q + "\n\n";
+        }
+
+        document.getElementById("counter").textContent =
+            "Processed: " + (i + 1);
+
+        const percent = Math.round(((i + 1) / totalQuestions) * 100);
+        document.getElementById("progressBar").style.width = percent + "%";
+        document.getElementById("progressText").textContent = percent + "%";
+
+        renderCategoryBoxes();
+        await new Promise(r => setTimeout(r, DELAY));
+    }
+
+    document.getElementById("status").textContent = "Completed ✓";
+    downloadFile();
+}
+
+// -------- DOWNLOAD FINAL FILE --------
+function downloadFile() {
+
+    let output = "";
+
+    categories.forEach(cat => {
+        output += "===== " + cat.toUpperCase() + " =====\n\n";
+        results[cat].forEach((q, i) => {
+            output += (i + 1) + ". " + q + "\n\n";
+        });
+    });
+
+    const blob = new Blob([output], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "SSC_GK_Classified.txt";
+    a.click();
+}
 </script>
+
 </body>
 </html>
